@@ -8,6 +8,7 @@ class Minisplit extends Actuador {
 
     // Implementamos la lógica de encendido y apagado
     ejecutar(accion, parametrosAdicionales = {}) {
+        console.log(`   ⚙️ [${this.id}] Procesando acción: '${accion}'`);
         if (accion === 'encender') {
             this.estado = true;
             this.temperaturaObjetivo = parametrosAdicionales.temperatura_objetivo || 20;
