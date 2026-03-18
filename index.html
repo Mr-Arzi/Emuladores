@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONART - Dashboard</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; text-align: center; padding: 40px; color: #343a40; }
+        .contenedor { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .tarjeta { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 250px; }
+        .temperatura { font-size: 3em; font-weight: bold; color: #ff7675; margin: 15px 0; }
+        button { padding: 12px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-encender { background-color: #0984e3; }
+        .btn-encender:hover { background-color: #74b9ff; }
+        .btn-apagar { background-color: #d63031; }
+        .btn-apagar:hover { background-color: #ff7675; }
+        .estado { font-size: 0.9em; color: #636e72; }
+    </style>
+</head>
+<body>
+
+    <h1>🏛️ Panel de Control MONART</h1>
+    <p>Monitoreo de Conservación en Tiempo Real</p>
+
+    <div class="contenedor">
+        <div class="tarjeta">
+            <h3>🌡️ Sensor de Temperatura</h3>
+            <div class="temperatura" id="valor-temp">-- °C</div>
+            <div class="estado" id="estado-conexion">Conectando al broker...</div>
+        </div>
+
+        <div class="tarjeta">
+            <h3>❄️ Control Mini-Split</h3>
+            <p>Control manual del clima</p>
+            <button class="btn-encender" onclick="enviarComando('encender')">Encender AC</button>
+            <button class="btn-apagar" onclick="enviarComando('apagar')">Apagar AC</button>
+            <p class="estado" id="estado-ac" style="margin-top: 15px;">Último comando: Ninguno</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. Conexión al broker usando WebSockets (Nota el ws:// y el puerto 9001)
+        const cliente = mqtt.connect('ws://localhost:9001');
+
+        // 2. Al conectar, suscribirnos al sensor
+        cliente.on('connect', () => {
+            document.getElementById('estado-conexion').innerText = '✅ Conectado en vivo';
+            document.getElementById('estado-conexion').style.color = '#00b894';
+            cliente.subscribe('monart/sensores/temperatura');
+        });
+
+        // 3. Escuchar los mensajes que llegan
+        cliente.on('message', (topic, message) => {
+            if (topic === 'monart/sensores/temperatura') {
+                const data = JSON.parse(message.toString());
+                // Actualizar el HTML con el valor recibido
+                document.getElementById('valor-temp').innerText = `${data.valor} ${data.unidad}`;
+            }
+        });
+
+        // 4. Función para los botones del Mini-Split
+        function enviarComando(accion) {
+            let comando;
+            if (accion === 'encender') {
+                comando = { accion: 'encender', modo: 'enfriamiento', temperatura_objetivo: 20 };
+                document.getElementById('estado-ac').innerText = 'Último comando: 🧊 Encender';
+            } else {
+                comando = { accion: 'apagar' };
+                document.getElementById('estado-ac').innerText = 'Último comando: 🛑 Apagar';
+            }
+
+            // Publicar el comando hacia el actuador
+            cliente.publish('monart/actuadores/minisplit', JSON.stringify(comando));
+        }
+    </script>
+</body>
+</html>
