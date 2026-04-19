@@ -5,74 +5,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MONART - Dashboard</title>
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; text-align: center; padding: 40px; color: #343a40; }
-        .contenedor { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .tarjeta { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 250px; }
-        .temperatura { font-size: 3em; font-weight: bold; color: #ff7675; margin: 15px 0; }
-        button { padding: 12px 20px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-encender { background-color: #0984e3; }
-        .btn-encender:hover { background-color: #74b9ff; }
-        .btn-apagar { background-color: #d63031; }
-        .btn-apagar:hover { background-color: #ff7675; }
-        .estado { font-size: 0.9em; color: #636e72; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; text-align: center; padding: 20px; color: #343a40; }
+        h1 { color: #2d3436; margin-bottom: 5px; }
+        .contenedor { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        
+        /* Tarjetas pequeñas (Sensores de texto y Botones) */
+        .tarjeta { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 200px; display: flex; flex-direction: column; justify-content: space-between;}
+        
+        /* Cuadrícula para las gráficas (2x2) */
+        .contenedor-graficas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 30px auto; }
+        .tarjeta-grafica { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; }
+
+        /* Colores de las métricas */
+        .lectura { font-size: 2em; font-weight: bold; margin: 10px 0; }
+        .temp-color { color: #ff7675; }
+        .hum-color { color: #74b9ff; }
+        .luz-color { color: #fdcb6e; }
+        .uv-color { color: #a29bfe; }
+
+        /* Botones */
+        button { padding: 8px 12px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; width: 45%; font-size: 0.9em; }
+        .btn-encender, .btn-abrir { background-color: #0984e3; }
+        .btn-encender:hover, .btn-abrir:hover { background-color: #74b9ff; }
+        .btn-apagar, .btn-cerrar { background-color: #d63031; }
+        .btn-apagar:hover, .btn-cerrar:hover { background-color: #ff7675; }
+        
+        .estado { font-size: 0.85em; color: #636e72; margin-top: 10px; }
+        .botones-container { display: flex; justify-content: space-between; }
+
+        /* Responsivo: Si la pantalla es pequeña, pone 1 gráfica por fila */
+        @media (max-width: 768px) {
+            .contenedor-graficas { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
     <h1>🏛️ Panel de Control MONART</h1>
-    <p>Monitoreo de Conservación en Tiempo Real</p>
+    <p>Monitoreo de Conservación en Tiempo Real <span id="estado-conexion">🔴 Desconectado</span></p>
 
+    <div class="contenedor" style="margin-top: 20px;">
+        <div class="tarjeta">
+            <h3>🌡️ Temperatura</h3>
+            <div class="lectura temp-color" id="valor-temp">-- °C</div>
+        </div>
+        <div class="tarjeta">
+            <h3>💧 Humedad</h3>
+            <div class="lectura hum-color" id="valor-hum">-- %</div>
+        </div>
+        <div class="tarjeta">
+            <h3>💡 Luz</h3>
+            <div class="lectura luz-color" id="valor-luz">-- lx</div>
+        </div>
+        <div class="tarjeta">
+            <h3>☀️ Rayos UV</h3>
+            <div class="lectura uv-color" id="valor-uv">-- µW</div>
+        </div>
+    </div>
+
+    <div class="contenedor-graficas">
+        <div class="tarjeta-grafica">
+            <canvas id="graficaTemp" height="80"></canvas> 
+        </div>
+        <div class="tarjeta-grafica">
+            <canvas id="graficaHum" height="80"></canvas> 
+        </div>
+        <div class="tarjeta-grafica">
+            <canvas id="graficaLuz" height="80"></canvas> 
+        </div>
+        <div class="tarjeta-grafica">
+            <canvas id="graficaUV" height="80"></canvas> 
+        </div>
+    </div>
+
+    <h2 style="margin-top: 10px;">⚙️ Control Manual de Sala</h2>
     <div class="contenedor">
         <div class="tarjeta">
-            <h3>🌡️ Sensor de Temperatura</h3>
-            <div class="temperatura" id="valor-temp">-- °C</div>
-            <div class="estado" id="estado-conexion">Conectando al broker...</div>
+            <h3>❄️ Mini-Split</h3>
+            <div class="botones-container">
+                <button class="btn-encender" onclick="enviarComando('minisplit', 'encender')">ON</button>
+                <button class="btn-apagar" onclick="enviarComando('minisplit', 'apagar')">OFF</button>
+            </div>
+            <p class="estado" id="estado-minisplit">Último: Ninguno</p>
         </div>
-
         <div class="tarjeta">
-            <h3>❄️ Control Mini-Split</h3>
-            <p>Control manual del clima</p>
-            <button class="btn-encender" onclick="enviarComando('encender')">Encender AC</button>
-            <button class="btn-apagar" onclick="enviarComando('apagar')">Apagar AC</button>
-            <p class="estado" id="estado-ac" style="margin-top: 15px;">Último comando: Ninguno</p>
+            <h3>🌬️ Deshumidificador</h3>
+            <div class="botones-container">
+                <button class="btn-encender" onclick="enviarComando('deshumidificador', 'encender')">ON</button>
+                <button class="btn-apagar" onclick="enviarComando('deshumidificador', 'apagar')">OFF</button>
+            </div>
+            <p class="estado" id="estado-deshumidificador">Último: Ninguno</p>
+        </div>
+        <div class="tarjeta">
+            <h3>♨️ Humidificador</h3>
+            <div class="botones-container">
+                <button class="btn-encender" onclick="enviarComando('humidificador', 'encender')">ON</button>
+                <button class="btn-apagar" onclick="enviarComando('humidificador', 'apagar')">OFF</button>
+            </div>
+            <p class="estado" id="estado-humidificador">Último: Ninguno</p>
+        </div>
+        <div class="tarjeta">
+            <h3>🪟 Persianas</h3>
+            <div class="botones-container">
+                <button class="btn-abrir" onclick="enviarComando('persiana', 'abrir')">ABRIR</button>
+                <button class="btn-cerrar" onclick="enviarComando('persiana', 'cerrar')">CERRAR</button>
+            </div>
+            <p class="estado" id="estado-persiana">Último: Ninguno</p>
+        </div>
+        <div class="tarjeta">
+            <h3>💡 Dimmer</h3>
+            <div class="botones-container">
+                <button class="btn-encender" onclick="enviarComando('dimmer', 'encender')">ON</button>
+                <button class="btn-apagar" onclick="enviarComando('dimmer', 'apagar')">OFF</button>
+            </div>
+            <p class="estado" id="estado-dimmer">Último: Ninguno</p>
         </div>
     </div>
 
     <script>
-        // 1. Conexión al broker usando WebSockets (Nota el ws:// y el puerto 9001)
-        const cliente = mqtt.connect('ws://localhost:9001');
+        // ==========================================
+        // FÁBRICA DE GRÁFICAS (CHART.JS)
+        // ==========================================
+        function instanciarGrafica(idCanvas, titulo, colorLinea, colorFondo, minY, maxY) {
+            const ctx = document.getElementById(idCanvas).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [], 
+                    datasets: [{
+                        label: titulo,
+                        data: [],
+                        borderColor: colorLinea,
+                        backgroundColor: colorFondo,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: { y: { min: minY, max: maxY } },
+                    animation: { duration: 500 }
+                }
+            });
+        }
 
-        // 2. Al conectar, suscribirnos al sensor
+        // Creamos las 4 gráficas con sus colores y límites específicos
+        const chartTemp = instanciarGrafica('graficaTemp', 'Temperatura (°C)', '#ff7675', 'rgba(255, 118, 117, 0.2)', 15, 35);
+        const chartHum = instanciarGrafica('graficaHum', 'Humedad (%)', '#74b9ff', 'rgba(116, 185, 255, 0.2)', 20, 80);
+        const chartLuz = instanciarGrafica('graficaLuz', 'Nivel de Luz (lx)', '#fdcb6e', 'rgba(253, 203, 110, 0.2)', 0, 800);
+        const chartUV = instanciarGrafica('graficaUV', 'Radiación UV', '#a29bfe', 'rgba(162, 155, 254, 0.2)', 0, 150);
+
+        // Función auxiliar para inyectar datos a cualquier gráfica
+        function actualizarGrafica(chart, valor) {
+            const hora = new Date().toLocaleTimeString();
+            chart.data.labels.push(hora);
+            chart.data.datasets[0].data.push(valor);
+
+            // Mantiene solo los últimos 20 puntos para que la gráfica "avance"
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+            chart.update();
+        }
+
+        // ==========================================
+        // CONEXIÓN MQTT
+        // ==========================================
+        const cliente = mqtt.connect('ws://127.0.0.1:8083/mqtt');
+
         cliente.on('connect', () => {
-            document.getElementById('estado-conexion').innerText = '✅ Conectado en vivo';
+            document.getElementById('estado-conexion').innerText = '✅ Conectado a EMQX';
             document.getElementById('estado-conexion').style.color = '#00b894';
-            cliente.subscribe('monart/sensores/temperatura');
+            cliente.subscribe('monart/SALA-1/+/sensores/#');
         });
 
-        // 3. Escuchar los mensajes que llegan
+        // Escuchar mensajes y enviarlos a la gráfica correcta
         cliente.on('message', (topic, message) => {
-            if (topic === 'monart/sensores/temperatura') {
-                const data = JSON.parse(message.toString());
-                // Actualizar el HTML con el valor recibido
-                document.getElementById('valor-temp').innerText = `${data.valor} ${data.unidad}`;
+            const data = JSON.parse(message.toString());
+
+            if (topic.includes('sensores/temperatura')) {
+                document.getElementById('valor-temp').innerText = `${data.valor} °C`;
+                actualizarGrafica(chartTemp, data.valor);
+                
+            } else if (topic.includes('sensores/humedad')) {
+                document.getElementById('valor-hum').innerText = `${data.valor} %`;
+                actualizarGrafica(chartHum, data.valor);
+
+            } else if (topic.includes('sensores/luz')) {
+                document.getElementById('valor-luz').innerText = `${data.valor} lx`;
+                actualizarGrafica(chartLuz, data.valor);
+
+            } else if (topic.includes('sensores/uv')) {
+                document.getElementById('valor-uv').innerText = `${data.valor}`;
+                actualizarGrafica(chartUV, data.valor);
             }
         });
 
-        // 4. Función para los botones del Mini-Split
-        function enviarComando(accion) {
-            let comando;
-            if (accion === 'encender') {
-                comando = { accion: 'encender', modo: 'enfriamiento', temperatura_objetivo: 20 };
-                document.getElementById('estado-ac').innerText = 'Último comando: 🧊 Encender';
-            } else {
-                comando = { accion: 'apagar' };
-                document.getElementById('estado-ac').innerText = 'Último comando: 🛑 Apagar';
-            }
-
-            // Publicar el comando hacia el actuador
-            cliente.publish('monart/actuadores/minisplit', JSON.stringify(comando));
+        // ==========================================
+        // ENVIAR COMANDOS A ACTUADORES
+        // ==========================================
+        function enviarComando(dispositivo, accion) {
+            let comando = { accion: accion };
+            if (dispositivo === 'minisplit' && accion === 'encender') comando.temperatura_objetivo = 20;
+            if (dispositivo === 'deshumidificador' && accion === 'encender') comando.humedad_objetivo = 45;
+            if (dispositivo === 'dimmer' && accion === 'encender') comando.nivel_brillo = 80;
+            if (dispositivo === 'humidificador' && accion === 'encender') comando.humedad_objetivo = 60;
+            cliente.publish(`monart/SALA-1/oleo/actuadores/${dispositivo}`, JSON.stringify(comando));
+            
+            let textoAccion = accion === 'encender' || accion === 'abrir' ? '🟢 ' + accion.toUpperCase() : '🔴 ' + accion.toUpperCase();
+            document.getElementById(`estado-${dispositivo}`).innerText = `Último: ${textoAccion}`;
         }
     </script>
 </body>
 </html>
+
+

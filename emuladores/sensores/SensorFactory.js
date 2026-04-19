@@ -1,5 +1,9 @@
 // sensores/SensorFactory.js
 const SensorTemperatura = require('./SensorTemperatura');
+const SensorHumedad = require('./SensorHumedad');
+const SensorLuz = require('./SensorLuz');
+const SensorUV = require('./SensorUV');
+
 // Aquí irán importando los demás sensores conforme los desarrollen
 // const SensorHumedad = require('./SensorHumedad');
 // const SensorLuz = require('./SensorLuz');
@@ -7,8 +11,9 @@ const SensorTemperatura = require('./SensorTemperatura');
 // Mapeo dinámico: Relaciona el texto del config con la Clase real
 const registroSensores = {
     'Temperatura': SensorTemperatura,
-    // 'Humedad': SensorHumedad,
-    // 'Luz': SensorLuz
+    'Humedad': SensorHumedad,
+    'Luz': SensorLuz,
+    'UV': SensorUV,
 };
 
 class SensorFactory {
@@ -17,7 +22,7 @@ class SensorFactory {
         const ClaseSensor = registroSensores[configuracion.tipo];
 
         if (!ClaseSensor) {
-            throw new Error(`[Factory] ❌ Tipo de sensor no soportado o no registrado: ${configuracion.tipo}`);
+            throw new Error(`[Factory]  Tipo de sensor no soportado o no registrado: ${configuracion.tipo}`);
         }
 
         // Retornamos una nueva instancia, pasándole solo lo que necesita (su ID)
