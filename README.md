@@ -38,7 +38,7 @@ cd sensores
 npm install
 
 # Edita .env con la IP de la PC donde está EMQX:
-# MQTT_HOST=mqtt://192.168.1.100
+# MQTT_HOST=mqtt://ip de la computadora
 # MQTT_PORT=1883
 
 npm start
@@ -53,7 +53,7 @@ cd actuadores
 npm install
 
 # Edita .env con la IP de la PC donde está EMQX:
-# MQTT_HOST=mqtt://192.168.1.100
+# MQTT_HOST=mqtt://ip de la computadora
 # MQTT_PORT=1883
 
 npm start
@@ -68,7 +68,7 @@ cd frontend
 npm install
 
 # Edita main.js y cambia la IP de EMQX:
-# const EMQX_IP = '192.168.1.100';   ← línea ~50
+# const EMQX_IP = 'ip de la computadora';   ← línea ~50
 
 npm start
 # Abre el navegador en: http://localhost:8080
