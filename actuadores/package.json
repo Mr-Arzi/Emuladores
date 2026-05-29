@@ -1,0 +1,13 @@
+{
+  "name": "monart-actuadores",
+  "version": "1.0.0",
+  "description": "Nodo de actuadores MONART",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "mqtt": "^5.15.0"
+  }
+}

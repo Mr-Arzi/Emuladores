@@ -1,0 +1,66 @@
+/* style.css */
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; text-align: center; padding: 20px; color: #343a40; }
+h1 { color: #2d3436; margin-bottom: 5px; }
+.contenedor { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+
+/* Tarjetas pequeñas (Sensores de texto y Botones) */
+.tarjeta { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 200px; display: flex; flex-direction: column; justify-content: space-between;}
+
+/* Cuadrícula para las gráficas (2x2) */
+.contenedor-graficas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 30px auto; }
+.tarjeta-grafica { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; box-sizing: border-box; }
+
+/* Colores de las métricas */
+.lectura { font-size: 2em; font-weight: bold; margin: 10px 0; }
+.temp-color { color: #ff7675; }
+.hum-color { color: #74b9ff; }
+.luz-color { color: #fdcb6e; }
+.uv-color { color: #a29bfe; }
+
+/* Botones */
+button { padding: 8px 12px; margin: 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; width: 45%; font-size: 0.9em; }
+.btn-encender, .btn-abrir { background-color: #0984e3; }
+.btn-encender:hover, .btn-abrir:hover { background-color: #74b9ff; }
+.btn-apagar, .btn-cerrar { background-color: #d63031; }
+.btn-apagar:hover, .btn-cerrar:hover { background-color: #ff7675; }
+
+.estado { font-size: 0.85em; color: #636e72; margin-top: 10px; }
+.botones-container { display: flex; justify-content: space-between; }
+
+/* Responsivo: Si la pantalla es pequeña, pone 1 gráfica por fila */
+@media (max-width: 768px) {
+    .contenedor-graficas { grid-template-columns: 1fr; }
+}
+
+
+
+#panel-notificaciones {
+    margin: 20px auto;
+    max-width: 900px;
+    padding: 10px 20px;
+    background: #5050cd;
+    border-radius: 10px;
+}
+
+#contenedor-notificaciones {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0;
+}
+
+.notificacion {
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notif-online  { background: rgba(0, 184, 148, 0.15); border-left: 4px solid #00b894; color: #00b894; }
+.notif-offline { background: rgba(214, 48,  49, 0.15); border-left: 4px solid #d63031; color: #d63031; }
+
+.notif-hora { font-size: 0.8rem; opacity: 0.7; margin-left: 12px; }

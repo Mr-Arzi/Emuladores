@@ -1,0 +1,11 @@
+{
+  "name": "monart-frontend",
+  "version": "1.0.0",
+  "description": "Dashboard web MONART",
+  "scripts": {
+    "start": "npx http-server . -p 8080 --cors"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
