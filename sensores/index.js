@@ -130,6 +130,7 @@ client.on("connect", () => {
         });
 
         client.publish(configSensor.topic, payload);
+        console.log(`  📤 [${sensor.id}] -> ${configSensor.topic} | ${sensor.tipo}: ${valor}`);
       }, 5000);
     } catch (error) {
       console.error(error.message);
