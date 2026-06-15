@@ -1,5 +1,6 @@
-// config.js - Nodo Actuadores
 require('dotenv').config();
+
+const SALA = process.env.SALA_ID || 'SALA-1';
 
 module.exports = {
     broker: {
@@ -7,17 +8,16 @@ module.exports = {
              ? `${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`
              : 'mqtt://localhost:1883'
     },
+    sala: SALA,
     actuadores: [
-        { id: 'AC-SALA-1',     tipo: 'Minisplit',         topic: 'monart/SALA-1/oleo/actuadores/minisplit' },
-        { id: 'DESHUM-SALA-1', tipo: 'Deshumidificador',  topic: 'monart/SALA-1/oleo/actuadores/deshumidificador' },
-        { id: 'PERS-SALA-1',   tipo: 'Persiana',          topic: 'monart/SALA-1/oleo/actuadores/persiana' },
-        { id: 'DIMMER-SALA-1', tipo: 'Dimmer',            topic: 'monart/SALA-1/oleo/actuadores/dimmer' },
-        { id: 'HUMID-SALA-1',  tipo: 'Humidificador',     topic: 'monart/SALA-1/oleo/actuadores/humidificador' }
+        { id: `AC-${SALA}`,     tipo: 'Minisplit',        topic: `monart/${SALA}/oleo/actuadores/minisplit` },
+        { id: `DESHUM-${SALA}`, tipo: 'Deshumidificador', topic: `monart/${SALA}/oleo/actuadores/deshumidificador` },
+        { id: `PERS-${SALA}`,   tipo: 'Persiana',         topic: `monart/${SALA}/oleo/actuadores/persiana` },
+        { id: `DIMMER-${SALA}`, tipo: 'Dimmer',           topic: `monart/${SALA}/oleo/actuadores/dimmer` },
+        { id: `HUMID-${SALA}`,  tipo: 'Humidificador',    topic: `monart/${SALA}/oleo/actuadores/humidificador` }
     ],
-    // Tópico donde este nodo publica su estado para que los sensores ajusten la física
-    topicEstadoActuadores: 'monart/SALA-1/actuadores/estado'
+    topicEstadoActuadores: `monart/${SALA}/actuadores/estado`
 };
-
 
 
 

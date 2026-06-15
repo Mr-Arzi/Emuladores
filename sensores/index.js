@@ -57,12 +57,12 @@ client.on("connect", () => {
 
   // Al conectar, notificar que el nodo de sensores está activo
   client.publish(
-    "monart/SALA-1/sistema/notificaciones",
+    `monart/${config.sala}/sistema/notificaciones`,
     JSON.stringify({
       tipo: "sistema",
       origen: "sensores",
       evento: "online",
-      mensaje: "🔬 Nodo de Sensores conectado y activo",
+     mensaje: `🔬 Nodo de Sensores conectado y activo (${config.sala})`,
       timestamp: new Date().toISOString(),
     }),
   );

@@ -1,5 +1,6 @@
-// config.js - Nodo Sensores
 require('dotenv').config();
+
+const SALA = process.env.SALA_ID || 'SALA-1';
 
 module.exports = {
     broker: {
@@ -7,12 +8,12 @@ module.exports = {
              ? `${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`
              : 'mqtt://localhost:1883'
     },
+    sala: SALA,
     sensores: [
-        { id: 'TEMP-SALA-1', tipo: 'Temperatura', topic: 'monart/SALA-1/oleo/sensores/temperatura' },
-        { id: 'HUM-SALA-1',  tipo: 'Humedad',     topic: 'monart/SALA-1/oleo/sensores/humedad' },
-        { id: 'LUZ-SALA-1',  tipo: 'Luz',          topic: 'monart/SALA-1/oleo/sensores/luz' },
-        { id: 'UV-SALA-1',   tipo: 'UV',            topic: 'monart/SALA-1/oleo/sensores/uv' }
+        { id: `TEMP-${SALA}`, tipo: 'Temperatura', topic: `monart/${SALA}/oleo/sensores/temperatura` },
+        { id: `HUM-${SALA}`,  tipo: 'Humedad',     topic: `monart/${SALA}/oleo/sensores/humedad` },
+        { id: `LUZ-${SALA}`,  tipo: 'Luz',         topic: `monart/${SALA}/oleo/sensores/luz` },
+        { id: `UV-${SALA}`,   tipo: 'UV',           topic: `monart/${SALA}/oleo/sensores/uv` }
     ],
-    // Tópico donde los actuadores publican su estado (este nodo se suscribe para ajustar física)
-    topicEstadoActuadores: 'monart/SALA-1/actuadores/estado'
+    topicEstadoActuadores: `monart/${SALA}/actuadores/estado`
 };

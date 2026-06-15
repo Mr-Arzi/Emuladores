@@ -11,6 +11,13 @@
 <body>
 
     <h1>🏛️ Panel de Control MONART</h1>
+    <div id="selector-sala">
+    <label for="sala-select">🏛️ Sala:</label>
+    <select id="sala-select" onchange="cambiarSala(this.value)">
+        <option value="SALA-1">SALA-1</option>
+    </select>
+    <button onclick="agregarSala()">+ Nueva sala</button>
+</div>
     <p>Monitoreo de Conservación en Tiempo Real <span id="estado-conexion">🔴 Desconectado</span></p>
 
     <div id="panel-notificaciones">

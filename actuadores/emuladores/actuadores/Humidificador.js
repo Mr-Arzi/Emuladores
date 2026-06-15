@@ -7,14 +7,15 @@ class Humidificador extends Actuador {
     }
 
     // Sobrescribimos la función ejecutar para darle personalidad en la consola
-    ejecutar(accion, parametros) {
-        // Cambiamos el estado interno usando la lógica del padre
-        super.ejecutar(accion, parametros);
-
+    ejecutar(accion, parametros = {}) {
         if (accion === 'encender') {
-            console.log(`[${this.id}]  Inyectando vapor de agua al ambiente...`);
-        } else {
-            console.log(`[${this.id}]  Inyección de vapor detenida.`);
+            this.estado = true;
+            console.log(`    [${this.id}] Procesando acción: '${accion}'`);
+            console.log(`    [${this.id}] RESULTADO: Encendido. Inyectando vapor de agua al ambiente...`);
+        } else if (accion === 'apagar') {
+            this.estado = false;
+            console.log(`    [${this.id}] Procesando acción: '${accion}'`);
+            console.log(`    [${this.id}] RESULTADO: Apagado. Inyección de vapor detenida.`);
         }
     }
 }

@@ -48,12 +48,12 @@ client.on("connect", () => {
 
       console.log(` ✔ Actuador iniciado: [${actuador.id}]`);
       client.publish(
-        "monart/SALA-1/sistema/notificaciones",
+        "`monart/${config.sala}/sistema/notificaciones",
         JSON.stringify({
           tipo: "actuador",
           origen: actuador.id,
           evento: "online",
-          mensaje: `✅ Actuador [${actuador.id}] iniciado correctamente`,
+          mensaje: `⚙️ Nodo de Actuadores conectado y activo (${config.sala})`,
           timestamp: new Date().toISOString(),
         }),
       );
@@ -74,26 +74,30 @@ client.on("message", (topic, message) => {
 
   try {
     const orden = JSON.parse(message.toString());
-    console.log(
-      `\n ▶ [ORDEN RECIBIDA] Tópico: ${topic} | Acción: ${orden.accion}`,
-    );
+    console.log(`\n ▶ [ORDEN RECIBIDA] Tópico: ${topic}`);
+    console.log(`   Payload: ${message.toString()}`);
 
     actuadoresActivos[topic].ejecutar(orden.accion, orden);
 
     // Actualizar estado local según la orden recibida
     if (topic.endsWith("/minisplit")) {
       estadoActuadores.minisplitEncendido = orden.accion === "encender";
+      console.log(`   🌡️  Minisplit -> ${estadoActuadores.minisplitEncendido ? "ENCENDIDO" : "APAGADO"}`);
     } else if (topic.endsWith("/deshumidificador")) {
       estadoActuadores.deshumidificadorEncendido = orden.accion === "encender";
+      console.log(`   💨 Deshumidificador -> ${estadoActuadores.deshumidificadorEncendido ? "ENCENDIDO" : "APAGADO"}`);
     } else if (topic.endsWith("/humidificador")) {
       estadoActuadores.humidificadorEncendido = orden.accion === "encender";
+      console.log(`   💧 Humidificador -> ${estadoActuadores.humidificadorEncendido ? "ENCENDIDO" : "APAGADO"}`);
     } else if (topic.endsWith("/persiana")) {
       estadoActuadores.persianaAbierta = orden.accion === "abrir";
+      console.log(`   🪟 Persiana -> ${estadoActuadores.persianaAbierta ? "ABIERTA" : "CERRADA"}`);
     } else if (topic.endsWith("/dimmer")) {
       estadoActuadores.dimmerEncendido = orden.accion === "encender";
       if (orden.accion === "encender" && orden.nivel_brillo) {
         estadoActuadores.nivelDimmer = orden.nivel_brillo;
       }
+      console.log(`   💡 Dimmer -> ${estadoActuadores.dimmerEncendido ? `ENCENDIDO al ${estadoActuadores.nivelDimmer}%` : "APAGADO"}`);
     }
 
     // Publicar el nuevo estado para que el nodo de sensores actualice su física

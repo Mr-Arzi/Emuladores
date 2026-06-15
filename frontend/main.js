@@ -50,14 +50,15 @@ function actualizarGrafica(chart, valor) {
 // ⚠️ CONFIGURACIÓN: Cambia esta IP por la IP de la computadora donde corre EMQX
 // EMQX expone WebSocket en el puerto 8083 por defecto
 const EMQX_IP = 'localhost';
+let salaActual = 'SALA-1';
+const salasConocidas = ['SALA-1'];
+
 const cliente = mqtt.connect(`ws://${EMQX_IP}:8083/mqtt`);
 
 cliente.on('connect', () => {
     document.getElementById('estado-conexion').innerText = '✅ Conectado a EMQX';
     document.getElementById('estado-conexion').style.color = '#00b894';
-    cliente.subscribe('monart/SALA-1/+/sensores/#');
-    cliente.subscribe('monart/SALA-1/sistema/notificaciones');
-    cliente.subscribe('monart/SALA-1/actuadores/estado');
+    suscribirSala(salaActual);
 });
 
 // Escuchar mensajes
@@ -84,7 +85,7 @@ cliente.on('message', (topic, message) => {
     const notif = JSON.parse(message.toString());
     mostrarNotificacion(notif);
     
-} else if (topic === 'monart/SALA-1/actuadores/estado') {
+} else if (topic === `monart/${salaActual}/actuadores/estado`) {
     const estado = JSON.parse(message.toString());
     procesarCambioActuadores(estado);
 }
@@ -100,7 +101,7 @@ function enviarComando(dispositivo, accion) {
     if (dispositivo === 'humidificador' && accion === 'encender') comando.humedad_objetivo = 60; // ¡Con tu mejora agregada!
     if (dispositivo === 'dimmer' && accion === 'encender') comando.nivel_brillo = 80;
 
-    cliente.publish(`monart/SALA-1/oleo/actuadores/${dispositivo}`, JSON.stringify(comando));
+    cliente.publish(`monart/${salaActual}/oleo/actuadores/${dispositivo}`, JSON.stringify(comando));
     
     let textoAccion = accion === 'encender' || accion === 'abrir' ? '🟢 ' + accion.toUpperCase() : '🔴 ' + accion.toUpperCase();
     document.getElementById(`estado-${dispositivo}`).innerText = `Último: ${textoAccion}`;
@@ -162,4 +163,62 @@ function procesarCambioActuadores(estadoNuevo) {
     });
 
     estadoAnteriorActuadores = estadoNuevo;
+}
+
+// ==========================================
+// MANEJO DE SALAS
+// ==========================================
+function suscribirSala(sala) {
+    // Desuscribirse de la sala anterior
+    cliente.unsubscribe(`monart/+/+/sensores/#`);
+    cliente.unsubscribe(`monart/+/sistema/notificaciones`);
+    cliente.unsubscribe(`monart/+/actuadores/estado`);
+
+    // Suscribirse a la nueva sala
+    cliente.subscribe(`monart/${sala}/+/sensores/#`);
+    cliente.subscribe(`monart/${sala}/sistema/notificaciones`);
+    cliente.subscribe(`monart/${sala}/actuadores/estado`);
+
+    console.log(`📡 Suscrito a sala: ${sala}`);
+}
+
+function cambiarSala(sala) {
+    salaActual = sala;
+    estadoAnteriorActuadores = null;
+
+    // Limpiar lecturas actuales
+    document.getElementById('valor-temp').innerText = '-- °C';
+    document.getElementById('valor-hum').innerText = '-- %';
+    document.getElementById('valor-luz').innerText = '-- lx';
+    document.getElementById('valor-uv').innerText = '--';
+
+    // Limpiar estados de actuadores
+    ['minisplit','deshumidificador','humidificador','persiana','dimmer'].forEach(d => {
+        document.getElementById(`estado-${d}`).innerText = 'Último: Ninguno';
+    });
+
+    suscribirSala(sala);
+    mostrarNotificacion({
+        tipo: 'sistema',
+        origen: 'frontend',
+        evento: 'online',
+        mensaje: `🏛️ Cambiado a ${sala}`,
+        timestamp: new Date().toISOString()
+    });
+}
+
+function agregarSala() {
+    const nombre = prompt('Nombre de la nueva sala (ej: SALA-2):');
+    if (!nombre || salasConocidas.includes(nombre)) return;
+
+    salasConocidas.push(nombre);
+
+    const select = document.getElementById('sala-select');
+    const option = document.createElement('option');
+    option.value = nombre;
+    option.innerText = nombre;
+    select.appendChild(option);
+    select.value = nombre;
+
+    cambiarSala(nombre);
 }
